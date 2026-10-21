@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Propósito: Dividir as questões por padrão. Observa-se que ao início de cada questão tem uma faixa de alguma cor, que é o padrão de início de cada questão
 Autor: Alexandre Nassar de Peder
@@ -23,6 +24,8 @@ OBS7: rode esse código para cada imagem que você precisa cortar. Atualize as l
 OBS8: execute o código, e abra as imagens para conferir se as questões foram divididas corretamente. Se não, ajuste os valores de corte e execute novamente.
 """
 
+=======
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
 from PIL import Image
 import os
 
@@ -35,6 +38,7 @@ def converter_cor_gimp_para_rgb(gimp_r, gimp_g, gimp_b):
     b = int((gimp_b / 100) * 255)
     return (r, g, b)
 
+<<<<<<< HEAD
 def encontrar_faixa_azul(imagem, cor_alvo, tolerancia=15, altura_faixa=10): # ATUALIZAR a altura da faixa
     """
     Encontra posições onde há uma faixa horizontal da cor especificada
@@ -75,6 +79,59 @@ def encontrar_faixa_azul(imagem, cor_alvo, tolerancia=15, altura_faixa=10): # AT
             posicoes_corte.append(posicao_corte)
             print(f"Faixa azul encontrada começando em y={y}, cortando em y={posicao_corte}")
             # Pula a faixa inteira para evitar detecções múltiplas
+=======
+def encontrar_faixa_cruz(imagem, cor_alvo=(35, 31, 32), tolerancia=15, x_inicio=1028, x_fim=1043):
+    """
+    Encontra posições onde há uma cruz formada por uma faixa horizontal do x_inicio ao x_fim
+    e uma faixa vertical de mesma dimensão perpendicular ao centro da faixa horizontal.
+    """
+    largura_img, altura_img = imagem.size
+    pixels = imagem.load()
+    
+    largura_faixa = x_fim - x_inicio + 1  # 16 pixels (1028 a 1043 inclusive)
+    altura_faixa = largura_faixa          # Mesma quantidade da largura
+    x_centro = x_inicio + (largura_faixa // 2) # Centro da faixa horizontal para a haste vertical
+    
+    posicoes_corte = []
+    
+    def cor_valida(pixel):
+        if len(pixel) == 4:
+            r, g, b, a = pixel
+        else:
+            r, g, b = pixel[:3]
+        return (abs(r - cor_alvo[0]) <= tolerancia and 
+                abs(g - cor_alvo[1]) <= tolerancia and 
+                abs(b - cor_alvo[2]) <= tolerancia)
+
+    # Percorre a imagem de cima para baixo
+    y = 0
+    while y < altura_img - altura_faixa:
+        cruz_encontrada = True
+        
+        # 1. Verifica se a faixa HORIZONTAL completa (x de 1028 a 1043) é da cor alvo
+        y_horizontal = y + (altura_faixa // 2)
+        for x in range(x_inicio, x_fim + 1):
+            if not cor_valida(pixels[x, y_horizontal]):
+                cruz_encontrada = False
+                break
+        
+        # 2. Verifica se a faixa VERTICAL completa (centro x_centro, de y a y + altura_faixa) é da cor alvo
+        if cruz_encontrada:
+            for dy in range(altura_faixa):
+                if not cor_valida(pixels[x_centro, y + dy]):
+                    cruz_encontrada = False
+                    break
+        
+        if cruz_encontrada:
+            # Corta 20 pixels ACIMA do início do padrão visual
+            posicao_corte = y - 20
+            if posicao_corte < 0:
+                posicao_corte = 0
+                
+            posicoes_corte.append(posicao_corte)
+            print(f"Cruz encontrada começando em y={y}, cortando em y={posicao_corte}")
+            # Pula a altura da cruz para evitar detecções duplicadas
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
             y += altura_faixa
         else:
             y += 1
@@ -83,14 +140,20 @@ def encontrar_faixa_azul(imagem, cor_alvo, tolerancia=15, altura_faixa=10): # AT
 
 def dividir_imagem_por_faixas(caminho_imagem, pasta_saida, cor_alvo):
     """
+<<<<<<< HEAD
     Divide a imagem verticalmente cortando ANTES das faixas
     """
     # Abre a imagem
+=======
+    Divide a imagem verticalmente cortando 20px antes da cruz encontrada
+    """
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
     imagem = Image.open(caminho_imagem)
     largura, altura = imagem.size
     
     print(f"Imagem carregada: {largura}x{altura} pixels")
     
+<<<<<<< HEAD
     # Encontra as posições das faixas azuis
     posicoes_corte = encontrar_faixa_azul(imagem, cor_alvo)
     
@@ -116,15 +179,43 @@ def dividir_imagem_por_faixas(caminho_imagem, pasta_saida, cor_alvo):
         secao = imagem.crop(area_corte)
         
         # Salva a imagem cortada
+=======
+    # Encontra as posições das cruzes no intervalo x=1028 a 1043
+    posicoes_corte = encontrar_faixa_cruz(imagem, cor_alvo)
+    
+    if not posicoes_corte:
+        print("Nenhum padrão de cruz encontrado na imagem!")
+        return
+    
+    print(f"Encontradas {len(posicoes_corte)} ocorrências do padrão para corte")
+    
+    os.makedirs(pasta_saida, exist_ok=True)
+    
+    posicao_anterior = 0
+    
+    for i, posicao_corte in enumerate(posicoes_corte):
+        if posicao_corte <= posicao_anterior:
+            continue
+            
+        area_corte = (0, posicao_anterior, largura, posicao_corte)
+        secao = imagem.crop(area_corte)
+        
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
         nome_arquivo = f"parte_{i+1:03d}.png"
         caminho_completo = os.path.join(pasta_saida, nome_arquivo)
         secao.save(caminho_completo)
         print(f"Salvo: {caminho_completo} ({secao.width}x{secao.height}px)")
         
+<<<<<<< HEAD
         # A próxima seção começa após o final desta faixa azul
         posicao_anterior = posicao_corte + 10  # Pula a faixa azul de 10 pixels
     
     # Corta a seção final (após a última faixa azul)
+=======
+        posicao_anterior = posicao_corte
+    
+    # Corta a seção final após o último corte
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
     if posicao_anterior < altura:
         area_corte = (0, posicao_anterior, largura, altura)
         secao = imagem.crop(area_corte)
@@ -135,12 +226,21 @@ def dividir_imagem_por_faixas(caminho_imagem, pasta_saida, cor_alvo):
         print(f"Salvo: {caminho_completo} ({secao.width}x{secao.height}px)")
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     caminho_imagem = "NOME-DA-SUA-IMAGEM.png"  # Substitua pelo caminho da sua imagem
     pasta_saida = "NOME-PASTA-SAIDA" # Substitua pelo nome da pasta de saída desejada
 
     # Converte a cor do GIMP 0a100 para RGB (0a255)
     cor_do_padrao = converter_cor_gimp_para_rgb(25.1, 75.7, 95.3) # COLOCAR O RGB CORRETO DA FAIXA QUE DIVIDE AS QUESTÕES (0a100 do GIMP)
     print(f"Cor convertida: RGB{cor_do_padrao}")
+=======
+    caminho_imagem = "colunas_concatenadas_verticalmente.png"  # Substitua pelo caminho da sua imagem
+    pasta_saida = "questões divididas"          # Substitua pelo nome da pasta de saída
+    
+    # Define diretamente a cor RGB (35, 31, 32)
+    cor_do_padrao = (35, 31, 32)
+    print(f"Buscando padrão na cor RGB: {cor_do_padrao}")
+>>>>>>> acaf9a76c8bed183f595be9c6a6b8299e0ed8b01
     
     # Executa a divisão
     dividir_imagem_por_faixas(caminho_imagem, pasta_saida, cor_do_padrao)
